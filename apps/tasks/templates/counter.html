@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Counter</title></head>
+  <body>
+    <h1>Counter</h1>
+    <p>Current value: <b>{{ counter }}</b></p>
+    <form method="post" style="display:inline-block;margin-right:8px;">
+      {% csrf_token %}
+      <button name="inc" type="submit">Increase</button>
+    </form>
+    <form method="post" style="display:inline-block;">
+      {% csrf_token %}
+      <button name="reset" type="submit">Reset</button>
+    </form>
+    <p><a href="{% url 'welcome' %}">Back</a></p>
+  </body>
+</html>
