@@ -21,7 +21,9 @@ DJANGO_AND_THIRD_PARTY_APPS = [
     'django.contrib.staticfiles',
 ]
 PROJECT_APPS = [
-    'apps.tasks'
+    'apps.tasks',
+    'catalogs',
+    'commerces',
 ]
 INSTALLED_APPS = DJANGO_AND_THIRD_PARTY_APPS + PROJECT_APPS
 
