@@ -1,6 +1,10 @@
 # Python modules
 import os
 
+# Project modules
+from settings.conf import *  # noqa: F403
+
+
 # ----------------------------------------------
 # Path
 #
