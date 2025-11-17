@@ -1,6 +1,5 @@
-# Python modules + Third party modules
-
 # Django modules
+from django.conf import settings
 from django.db.models import (
     CharField,
     TextField,
@@ -11,7 +10,6 @@ from django.db.models import (
     PROTECT,
     CASCADE,
 )
-from django.contrib.auth.models import User
 
 # Project modules
 from apps.abstracts.models import AbstractSoftDeletableModel
@@ -28,12 +26,12 @@ class Project(AbstractSoftDeletableModel):
         max_length=NAME_MAX_LEN,
     )
     author = ForeignKey(
-        to=User,
+        to=settings.AUTH_USER_MODEL,
         on_delete=PROTECT,
         related_name="owned_projects",
     )
     users = ManyToManyField(
-        to=User,
+        to=settings.AUTH_USER_MODEL,
         blank=True,
         related_name="joined_projects",
     )
@@ -53,22 +51,19 @@ class Task(AbstractSoftDeletableModel):
     """
 
     NAME_MAX_LEN = 200
+
     STATUS_TODO = 1
     STATUS_TODO_LABEL = "To Do"
     STATUS_IN_PROGRESS = 2
     STATUS_IN_PROGRESS_LABEL = "In Progress"
     STATUS_DONE = 3
     STATUS_DONE_LABEL = "Done"
-    # STATUS_CHOICES = (
-    #     (STATUS_TODO, STATUS_TODO_LABEL),
-    #     (STATUS_IN_PROGRESS, STATUS_IN_PROGRESS_LABEL),
-    #     (STATUS_DONE, STATUS_DONE_LABEL),
-    # )
-    STATUS_CHOICES = {
-        STATUS_TODO: STATUS_TODO_LABEL,
-        STATUS_IN_PROGRESS: STATUS_IN_PROGRESS_LABEL,
-        STATUS_DONE: STATUS_DONE_LABEL,
-    }
+
+    STATUS_CHOICES = (
+        (STATUS_TODO, STATUS_TODO_LABEL),
+        (STATUS_IN_PROGRESS, STATUS_IN_PROGRESS_LABEL),
+        (STATUS_DONE, STATUS_DONE_LABEL),
+    )
 
     name = CharField(
         max_length=NAME_MAX_LEN,
@@ -93,7 +88,7 @@ class Task(AbstractSoftDeletableModel):
         on_delete=CASCADE,
     )
     assignees = ManyToManyField(
-        to=User,
+        to=settings.AUTH_USER_MODEL,
         through="UserTask",
         through_fields=("task", "user"),
         blank=True,
@@ -118,14 +113,13 @@ class UserTask(AbstractSoftDeletableModel):
         on_delete=CASCADE,
     )
     user = ForeignKey(
-        to=User,
+        to=settings.AUTH_USER_MODEL,
         on_delete=CASCADE,
     )
 
     class Meta:
         """Customization of the model's meta data."""
 
-        # unique_together = ("task", "user")
         constraints = [
             UniqueConstraint(
                 fields=["task", "user"],
@@ -135,7 +129,10 @@ class UserTask(AbstractSoftDeletableModel):
 
     def __repr__(self) -> str:
         """Returns the official string representation of the object."""
-        return f"TaskForUser(id={self.id}, task={self.task.name}, user={self.user.name})"
+        return (
+            f"TaskForUser(id={self.id}, "
+            f"task={self.task.name}, user={self.user.username})"
+        )
 
     def __str__(self) -> str:
         """Returns the string representation of the object."""
