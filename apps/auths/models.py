@@ -3,7 +3,7 @@ from typing import Any
 from enum import Enum
 
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.models import PermissionsMixin, UserManager
+from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.utils import timezone
 
@@ -33,15 +33,83 @@ DEPARTMENT_MAX_LEN = 50
 ROLE_MAX_LEN = 20
 
 
-# class CustomUserManager(BaseUserManager):
-#     """Custom user model manager for Django ORM"""
-#
-#     def __build_user_instance(
-#
-#     ) -> "CustomUser":
+class CustomUserManager(BaseUserManager):
+    """Custom User Manager to make database requests."""
+
+    def __build_user_instance(
+        self,
+        email: str,
+        username: str,
+        password: str | None,
+        **extra_fields: dict[str, Any],
+    ) -> "CustomUser":
+        """Create unsaved CustomUser instance with normalized email."""
+        if not email:
+            raise ValueError("Email field is required.")
+        if not username:
+            raise ValueError("Username field is required.")
+
+        user: "CustomUser" = self.model(
+            email=self.normalize_email(email),
+            username=username,
+            **extra_fields,
+        )
+
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
+
+        return user
+
+    def create_user(
+        self,
+        email: str,
+        username: str,
+        password: str | None = None,
+        **extra_fields: dict[str, Any],
+    ) -> "CustomUser":
+        """Create regular user."""
+        extra_fields.setdefault("is_active", True)
+
+        user: "CustomUser" = self.__build_user_instance(
+            email=email,
+            username=username,
+            password=password,
+            **extra_fields,
+        )
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(
+        self,
+        email: str,
+        username: str,
+        password: str | None = None,
+        **extra_fields: dict[str, Any],
+    ) -> "CustomUser":
+        """Create superuser."""
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)
+        extra_fields.setdefault("role", UserRole.ADMIN.value)
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
+
+        user: "CustomUser" = self.__build_user_instance(
+            email=email,
+            username=username,
+            password=password,
+            **extra_fields,
+        )
+        user.save(using=self._db)
+        return user
 
 
-class CustomUser(AbstractBaseUser, PermissionsMixin, AbstractBaseUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin, AbstractBaseModel):
     """
     Custom user model
 
@@ -109,7 +177,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin, AbstractBaseUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
 
-    objects = UserManager()
+    objects = CustomUserManager()
 
     class Meta:
         verbose_name = "User"
