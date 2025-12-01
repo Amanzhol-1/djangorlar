@@ -1,0 +1,4 @@
+# Testing requirements
+pytest==8.3.4
+pytest-django==5.0
+pytest-cov==6.0.0
