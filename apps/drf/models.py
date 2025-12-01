@@ -12,12 +12,18 @@ INDENTATION_MAX_VALUE = 50
 User = get_user_model()
 
 class Course(AbstractBaseModel):
+    """
+    Course model
+    """
     title = models.CharField(max_length=TITLE_MAX_LENGTH)
     description = models.TextField()
     owner = models.ForeignKey(User, related_name='owned_courses', on_delete=models.CASCADE)
 
 
 class Lesson(AbstractBaseModel):
+    """
+    Lesson model
+    """
     title = models.CharField(max_length=TITLE_MAX_LENGTH)
     content = models.TextField()
     order = models.DecimalField(max_digits=ORDER_MAX_LEN, decimal_places=ORDER_DECIMAL_PLACES)
